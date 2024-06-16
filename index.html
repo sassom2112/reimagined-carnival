@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta tags for character set and viewport settings -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Page title -->
+  <title>Contact App</title>
+  
+  <!-- Link to the external stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Main layout of the application -->
+  <main id="app-layout">
+    
+    <!-- Left column containing the header with title and add button -->
+    <section id="left-column">
+      <header>
+        <!-- Empty div for spacing or future content -->
+        <div class="left"></div>
+        
+        <!-- Title of the application -->
+        <div class="title">Contacts</div>
+        
+        <!-- Button to open the add contact modal -->
+        <div class="right">
+          <button class="addBtn">ADD</button>
+        </div>
+      </header>
+
+      <ul id="contact-list">
+        <li class="contact-list-item">
+          <div class="media">
+            <div class="two-letters">AB</div>
+          </div>
+          <div class="content">
+            <div class="title">Title</div>
+            <div class="subtitle">Subtitle</div>
+          </div>
+          <div class="action">
+            <button class="onEdit">Edit</button>
+            <button class="onDelete">DELETE</button>
+          </div>
+        </li>
+      </ul>
+
+
+    </section>
+
+
+    
+    <!-- Right column with a header -->
+    <section id="right-column">
+      <header>
+        <!-- Title for the right column (could be used for sorting or other functionalities) -->
+        <div class="title">Name</div>
+      </header>
+    </section>
+  </main>
+
+  <!-- Modal for adding contacts -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <div class="modal-header">
+        <!-- Header of the modal with a title -->
+        <h2>ADD CONTACTS</h2>
+      </div>
+      
+      <!-- Unordered list to display error messages -->
+      <ul id="error-label"></ul>
+      
+      <!-- Content of the modal including the form fields -->
+      <div class="modal-content">
+        <!-- Row containing the first name and last name input groups -->
+        <div class="row">
+          <div class="input-group">
+            <label>First Name</label>
+            <input type="text" id="firstname">
+          </div>
+          <div class="input-group">
+            <label>Last Name</label>
+            <input type="text" id="lastname">
+          </div>
+        </div>
+
+        <!-- Row containing the age and phone input groups -->
+        <div class="row">
+          <div class="input-group">
+            <label>Age</label>
+            <input type="number" id="age">
+          </div>
+          <div class="input-group">
+            <label>Phone</label>
+            <input type="number" id="phone">
+          </div>
+        </div>
+
+        <!-- Row containing the email input group -->
+        <div class="row">
+          <div class="input-group">
+            <label>E-Mail</label>
+            <input type="email" id="email">
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer of the modal with close and submit buttons -->
+      <div class="modal-footer">
+        <button class="closeBtn">Close</button>
+        <button class="submitBtn">Submit</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- JavaScript files to initialize Firebase and handle form interactions -->
+  <script type="module" src="firebase-sdk.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
