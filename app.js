@@ -1,35 +1,112 @@
 // Import the necessary Firestore functions from the Firebase SDK
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 // Initialize Firestore
 const db = getFirestore(); // Get a reference to the Firestore service
 const dbRef = collection(db, "contacts"); // Get a reference to the "contacts" collection
 
+let contacts = []; // Array to store contacts
+
 
 // Function to get and log contacts from Firestore
 const getContacts = async() => {
   try {
-     const docSnap = await getDocs(dbRef);
-     docSnap.forEach((doc) => {
-       console.log(doc.data());
-     });
-  } catch (err) {
-    console.log("Error getting documents: ", err);
-  }
-}
-
+      //  const docSnap = await getDocs(dbRef);
+      await onSnapshot(dbRef, (docSnap) => {
+  
+        contacts = []; // Clear the contacts array
+  
+        docSnap.forEach((doc) => {
+          let contact = doc.data();
+          contact.id = doc.id;
+          contacts.push(contact);      
+        });
+        showContacts(contacts);
+      });
+    } catch (err) {
+        console.error("Error getting documents: ", err);
+      }
+  };
 getContacts(); // Get and log contacts from Firestore
 
+const contactList = document.getElementById("contact-list");
+
+
+const showContacts = (contacts) => {
+  contactList.innerHTML = ""; // Clear the contact list
+
+  contacts.forEach(contact => {
+    // Get the initials and ensure they are capitalized
+    // const initials = `${contact.firstname.charAt(0).toUpperCase()}${contact.lastname.charAt(0).toUpperCase()}`;
+
+    const li = `
+      <li class="contact-list-item" id="${contact.id}">
+        <div class="media">
+          <div class="two-letters">
+      
+          </div>
+        </div>
+        <div class="content">
+          <div class="title">
+          ${contact.firstname} ${contact.lastname}</div>
+          <div class="subtitle">
+          ${contact.email}</div>
+        </div>
+        <div class="action">
+          <button class="onEdit">Edit</button>
+          <button class="onDelete">DELETE</button>
+        </div>
+      </li>`;
+    contactList.innerHTML += li; // Append the new list item to the contact list
+  });
+};
+
+// -----------------------------------------
+//      CLICK CONTACT LIST UL ELEMENT
+// -----------------------------------------
+const contactListPressed = (event) => {
+  const id = event.target.closest("li").getAttribute("id");
+  displayContactOnDetailsView(id);
+}
+
+
+contactList.addEventListener("click", contactListPressed);
+
+// -----------------------------------------
+//      DISPLAY CONTACT ON DETAILS VIEW
+// -----------------------------------------
+const getContact = (id) => {
+  return contacts.find(contact => {
+    return contact.id === id;
+  });
+}
+const displayContactOnDetailsView = (id) => {
+  const contact = getContact(id);
+  const rightColDetail = document.getElementById("right-col-details");
+  rightColDetail.innerHTML = `
+    <div class="label">Name:</div>
+    <div class="data">${contact.firstname} ${contact.lastname}</div>
+    
+    <div class="label">Age:</div>
+    <div class="data">${contact.age}</div>
+
+    <div class="label">Phone #:</div>
+    <div class="data">${contact.phone}</div>
+
+    <div class="label">Email:</div>
+    <div class="data">${contact.email}</div>
+  `;
+};
 
 // Wait for the DOM content to load before running the script
 document.addEventListener("DOMContentLoaded", () => {
-  // Query DOM elements
-  const addBtn = document.querySelector(".addBtn"); // Button to open the add contact modal
-  const modalOverlay = document.getElementById("modal-overlay"); // Overlay for the modal
-  const closeBtn = document.querySelector(".closeBtn"); // Button to close the modal
-  const submitBtn = document.querySelector(".submitBtn"); // Button to submit the form
-  const error = {}; // Object to store error messages for form validation
-
+   // Query DOM elements
+   const addBtn = document.querySelector(".addBtn"); // Button to open the add contact modal
+   const modalOverlay = document.getElementById("modal-overlay"); // Overlay for the modal
+   const closeBtn = document.querySelector(".closeBtn"); // Button to close the modal
+   const submitBtn = document.querySelector(".submitBtn"); // Button to submit the form
+   const contactList = document.getElementById("contact-list"); // Contact list element
+   const error = {}; // Object to store error messages for form validation  
 
 
   // Query input elements
@@ -47,8 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             deleteErrorMessage(input); // Delete error if the field is filled
         }
-    });
-  }
+      });
+  };
 
   // Function to open the modal when the add button is pressed
   const addButtonPressed = () => {
@@ -69,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }  else {
         modalOverlay.style.display = "none"; // Hide the modal overlay
     }
-  }
+  };
 
   // Function to handle form submission
   const saveButtonPressed = async() => {
@@ -98,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showErrorMessages(); // Display error messages if any
       }     
     }
-  }
+  };
 
   // Function to set an error message for an input field
   const setErrorMessage = (input, message) => {
@@ -114,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteErrorMessage = (input) => {
     delete error[input.id]; // Remove the error message from the error object
     input.style.border = "1px solid green"; // Highlight the input field with a green border
-  }
+  };
 
   // Function to check if the input value length matches the required length
   const checkInputLength = (input, number) => {
@@ -125,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setErrorMessage(input, input.id + " must be " + number + " characters"); // Set error if the length does not match
       }
     }
-  }
+  };
 
   // Function to check if the input value is not empty
   const checkInputValue = (input) => {
@@ -134,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       setErrorMessage(input, input.id + " is required"); // Set error if the field is empty
     }
-  }
+  };
 
   // Function to validate the email format
   const checkEmail = (input) => {
@@ -146,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setErrorMessage(input, "Email is not valid"); // Set error if the email format is invalid
       }
     }
-  }
+  };
 
   // Function to display all error messages
   const showErrorMessages = () => {
@@ -165,4 +242,4 @@ document.addEventListener("DOMContentLoaded", () => {
   closeBtn.addEventListener("click", closeBtnPressed); // Close the modal when close button is pressed
   modalOverlay.addEventListener("click", closeWhenPressed); // Close the modal when clicking outside of it
   submitBtn.addEventListener("click", saveButtonPressed); // Handle form submission
-});
+  });

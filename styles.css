@@ -23,7 +23,6 @@ body {
 #app-layout #right-column {
   border: solid 1px #000;
   flex: 3;
-  display:inline-flex;
   align-items: center;
   justify-content: center;
 }
@@ -216,4 +215,25 @@ input[type="email"] {
   display: flex;
   justify-content: center;
   background-color:white;
+}
+
+/* RIGHT COLUMN */
+
+#right-col-details {
+  display: flex;
+  flex-direction: column;
+}
+#right-col-details .label {
+  background-color: rgba(0, 0, 0, 0.616);
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+
+#right-col-details .data {
+  display: flex;
+  flex-direction: column;
+  padding-left: 15px;
+  font-weight: bold;
+  padding-bottom: 10px;
 }
