@@ -23,8 +23,8 @@ body {
 #app-layout #right-column {
   border: solid 1px #000;
   flex: 3;
-  align-items: center;
   justify-content: center;
+  /* display: flex; */
 }
 
 
@@ -237,3 +237,20 @@ input[type="email"] {
   font-weight: bold;
   padding-bottom: 10px;
 }
+#app-layout #right-column #backBtn {
+  display: none;
+}
+
+
+@media only screen and (max-width: 600px) {
+  #app-layout #right-column {
+    display: none;
+  }
+  #app-layout #right-column #backBtn {
+    margin: 20px 0 0 20px;
+    display: block;
+  }
+  #modal .modal-content .row {
+    flex-direction: column;
+  }
+} 
