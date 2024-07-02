@@ -19,7 +19,13 @@
     <section id="left-column">
       <header>
         <!-- Empty div for spacing or future content -->
-        <div class="left"></div>
+        <div class="left">
+          <div class="input-group">
+            <label>Search by Name:</label>
+            <input type="search" id="site-db">
+            <button class="searchBtn">Search</button>
+          </div>
+        </div>
         
         <!-- Title of the application -->
         <div class="title">Contacts</div>
@@ -45,11 +51,7 @@
           </div>
         </li> -->
       </ul>
-
-
     </section>
-
-
     
     <!-- Right column with a header -->
     <section id="right-column">
@@ -84,31 +86,31 @@
         <div class="row">
           <div class="input-group">
             <label>First Name</label>
-            <input type="text" id="firstname">
+            <input type="text" id="firstName">
           </div>
           <div class="input-group">
             <label>Last Name</label>
-            <input type="text" id="lastname">
+            <input type="text" id="lastName">
           </div>
         </div>
 
-        <!-- Row containing the age and phone input groups -->
+        <!-- Row containing the age and phone number input groups -->
         <div class="row">
           <div class="input-group">
             <label>Age</label>
             <input type="number" id="age">
           </div>
           <div class="input-group">
-            <label>Phone</label>
-            <input type="number" id="phone">
+            <label>Phone #</label>
+            <input type="number" id="phoneNumber">
           </div>
         </div>
 
         <!-- Row containing the email input group -->
         <div class="row">
           <div class="input-group">
-            <label>E-Mail</label>
-            <input type="email" id="email">
+            <label>Email</label>
+            <input type="text" id="email">
           </div>
         </div>
       </div>

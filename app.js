@@ -7,10 +7,10 @@ let contactList;
 let leftCol;
 let rightCol;
 let backBtn;
-let firstname;
-let lastname;
+let firstName;
+let lastName;
+let phoneNumber;
 let email;
-let phone;
 let age;
 
 // Initialize Firestore
@@ -44,19 +44,56 @@ const getContacts = async () => {
   }
 };
 
+// Function to filter and highlight contacts based on search query
+const filterContacts = (query) => {
+  const lowerCaseQuery = query.toLowerCase();
+  const filteredContacts = contacts.filter(contact => {
+    return (
+      (contact.firstName && contact.firstName.toLowerCase().includes(lowerCaseQuery)) ||
+      (contact.lastName && contact.lastName.toLowerCase().includes(lowerCaseQuery)) ||
+      (contact.email && contact.email.toLowerCase().includes(lowerCaseQuery)) ||
+      (contact.phoneNumber && contact.phoneNumber.toLowerCase().includes(lowerCaseQuery))
+    );
+  });
+
+  showContacts(filteredContacts);
+
+  // Highlight matching text (example for name fields)
+  document.querySelectorAll('.contact-list-item .title').forEach(item => {
+    const regex = new RegExp(`(${query})`, 'gi');
+    item.innerHTML = item.textContent.replace(regex, '<mark>$1</mark>');
+  });
+};
+
+const handleSearchInput = debounce((event) => {
+  const query = event.target.value;
+  filterContacts(query);
+}, 300);
+
+const handleSearchButton = () => {
+  const query = document.getElementById('site-db').value;
+  filterContacts(query);
+};
+
+// Function to display contacts
 const showContacts = (contacts) => {
   const fragment = document.createDocumentFragment();
   contacts.forEach(contact => {
     const li = document.createElement('li');
     li.className = 'contact-list-item';
     li.id = contact.id;
+
+    // Check for undefined or null values
+    const firstLetterFirstName = contact.firstName ? contact.firstName.charAt(0).toUpperCase() : '';
+    const firstLetterLastName = contact.lastName ? contact.lastName.charAt(0).toUpperCase() : '';
+
     li.innerHTML = `
       <div class="media">
-        <div class="two-letters"></div>
+        <div class="two-letters">${firstLetterFirstName}${firstLetterLastName}</div>
       </div>
       <div class="content">
-        <div class="title">${contact.firstname} ${contact.lastname}</div>
-        <div class="subtitle">${contact.email}</div>
+        <div class="title">${contact.firstName || ''} ${contact.lastName || ''}</div>
+        <div class="subtitle">${contact.email || ''}</div>
       </div>
       <div class="action">
         <button class="edit-user">Edit</button>
@@ -64,13 +101,17 @@ const showContacts = (contacts) => {
       </div>`;
     fragment.appendChild(li);
   });
-  contactList.innerHTML = '';
-  contactList.appendChild(fragment);
+
+  // Ensure contactList is defined and present in the DOM
+  if (contactList) {
+    contactList.innerHTML = '';
+    contactList.appendChild(fragment);
+  } else {
+    console.error('contactList is not defined');
+  }
 };
 
-// -----------------------------------------
-//      CLICK CONTACT LIST UL ELEMENT
-// -----------------------------------------
+// Function to handle clicks on the contact list
 const contactListPressed = (event) => {
   const id = event.target.closest("li").getAttribute("id");
   if (event.target.className === "edit-user") {
@@ -81,11 +122,9 @@ const contactListPressed = (event) => {
     displayContactOnDetailsView(id);
     toggleLeftAndRightCol();
   }
-}
+};
 
-// -----------------------------------------
-//      On Mobile View
-// -----------------------------------------
+// Function to handle mobile view back button
 const backBtnPressed = () => {
   if (document.body.clientWidth < 600) {
     leftCol.style.display = "block";
@@ -93,16 +132,15 @@ const backBtnPressed = () => {
   }
 };
 
+// Function to toggle columns on mobile view
 const toggleLeftAndRightCol = () => {
   if (document.body.clientWidth < 600) {
     leftCol.style.display = "none";
     rightCol.style.display = "block";
   }
-}
+};
 
-// -----------------------------------------
-//      Delete BUTTON PRESSED
-// -----------------------------------------
+// Function to delete a contact
 const deleteButtonPressed = async (id) => {
   const isConfirmed = confirm("Are you sure you want to delete this contact?");
   if (isConfirmed) {
@@ -110,155 +148,161 @@ const deleteButtonPressed = async (id) => {
       const docRef = doc(db, "contacts", id);
       await deleteDoc(docRef);
     } catch (e) {
-      setErrorMessage("error", "Error deleting document: " + e); // Set error if there is an error deleting the document
-      showErrorMessages(); // Display error messages if any
+      setErrorMessage("error", "Error deleting document: " + e);
+      showErrorMessages();
     }
   }
 };
 
-// -----------------------------------------
-//      EDIT BUTTON PRESSED
-// -----------------------------------------
+// Function to edit a contact
 const editButtonPressed = (id) => {
-  modalOverlay.style.display = "flex"; // Show the modal overlay
+  modalOverlay.style.display = "flex";
   const contact = getContact(id);
 
-  firstname.value = contact.firstname;
-  lastname.value = contact.lastname;
+  firstName.value = contact.firstName;
+  lastName.value = contact.lastName;
+  phoneNumber.value = contact.phoneNumber;
   email.value = contact.email;
-  phone.value = contact.phone;
   age.value = contact.age;
 
   modalOverlay.setAttribute("contact-id", contact.id);
 };
 
-// -----------------------------------------
-//      DISPLAY CONTACT ON DETAILS VIEW
-// -----------------------------------------
+// Function to get a contact by ID
 const getContact = (id) => {
   return contacts.find(contact => contact.id === id);
-}
+};
 
+// Function to display contact details
 const displayContactOnDetailsView = (id) => {
   const contact = getContact(id);
   const rightColDetail = document.getElementById("right-col-details");
   rightColDetail.innerHTML = `
     <div class="label">Name:</div>
-    <div class="data">${contact.firstname} ${contact.lastname}</div>
-    
+    <div class="data">${contact.firstName} ${contact.lastName}</div>
     <div class="label">Age:</div>
     <div class="data">${contact.age}</div>
-
-    <div class="label">Phone #:</div>
-    <div class="data">${contact.phone}</div>
-
     <div class="label">Email:</div>
     <div class="data">${contact.email}</div>
+    <div class="label">Phone Number:</div>
+    <div class="data">${contact.phoneNumber}</div>
   `;
 };
 
 // Wait for the DOM content to load before running the script
 document.addEventListener("DOMContentLoaded", () => {
   // Query DOM elements inside the event listener
-  modalOverlay = document.getElementById("modal-overlay"); // Overlay for the modal
-  contactList = document.getElementById("contact-list"); // Contact list element
+  modalOverlay = document.getElementById("modal-overlay");
+  contactList = document.getElementById("contact-list");
   leftCol = document.getElementById("left-column");
   rightCol = document.getElementById("right-column");
   backBtn = document.getElementById("backBtn");
-  const addBtn = document.querySelector(".addBtn"); // Button to open the add contact modal
-  const closeBtn = document.querySelector(".closeBtn"); // Button to close the modal
-  const submitBtn = document.querySelector(".submitBtn"); // Button to submit the form
+  const addBtn = document.querySelector(".addBtn");
+  const closeBtn = document.querySelector(".closeBtn");
+  const submitBtn = document.querySelector(".submitBtn");
 
-  firstname = document.getElementById("firstname");
-  lastname = document.getElementById("lastname");
+  firstName = document.getElementById("firstName");
+  lastName = document.getElementById("lastName");
+  phoneNumber = document.getElementById("phoneNumber");
   email = document.getElementById("email");
-  phone = document.getElementById("phone");
   age = document.getElementById("age");
 
   const error = {}; // Object to store error messages for form validation
 
+  // Mapping object for user-friendly names
+  const fieldNames = {
+    firstName: "First name",
+    lastName: "Last name",
+    phoneNumber: "Phone number",
+    email: "Email",
+    age: "Age"
+  };
 
+  // Ensure inputs are enabled
+  email.removeAttribute("disabled");
+  email.removeAttribute("readonly");
+
+  // Add event listeners for search functionality
+  document.getElementById('site-db').addEventListener('input', handleSearchInput);
+  document.querySelector('.searchBtn').addEventListener('click', handleSearchButton);
 
   // Function to check if required fields are filled
   const checkRequired = (inputArr) => {
     inputArr.forEach(input => {
       if (input.value.trim() === "") {
-        setErrorMessage(input, input.id + " is required"); // Set error if the field is empty
+        setErrorMessage(input, fieldNames[input.id] + " is required");
       } else {
-        deleteErrorMessage(input); // Delete error if the field is filled
+        deleteErrorMessage(input);
       }
     });
   };
 
   // Function to open the modal when the add button is pressed
   const addButtonPressed = () => {
-    modalOverlay.style.display = "flex"; // Show the modal overlay
-    modalOverlay.removeAttribute("contact-id"); // Remove the contact-id attribute
-    firstname.value = ""; // Clear the firstname input field
-    lastname.value = ""; // Clear the lastname input field
-    email.value = ""; // Clear the email input field
-    phone.value = ""; // Clear the phone input field
-    age.value = ""; // Clear the age input field
+    modalOverlay.style.display = "flex";
+    modalOverlay.removeAttribute("contact-id");
+    firstName.value = "";
+    lastName.value = "";
+    phoneNumber.value = "";
+    email.value = "";
+    age.value = "";
   };
 
   // Function to close the modal when the close button is pressed
   const closeBtnPressed = () => {
-    modalOverlay.style.display = "none"; // Hide the modal overlay
+    modalOverlay.style.display = "none";
   };
 
   // Function to close the modal when clicking outside of it
   const closeWhenPressed = (e) => {
     if (e instanceof Event) {
       if (e.target === e.currentTarget) {
-        modalOverlay.style.display = "none"; // Hide the modal overlay
+        modalOverlay.style.display = "none";
       }
     } else {
-      modalOverlay.style.display = "none"; // Hide the modal overlay
+      modalOverlay.style.display = "none";
     }
   };
 
   // Function to handle form submission
   const saveButtonPressed = async () => {
-    checkRequired([firstname, lastname, email, phone, age]); // Check required fields
-    checkInputValue(firstname); // Validate firstname
-    checkInputValue(lastname); // Validate lastname
-    checkEmail(email); // Validate email
-    checkInputLength(phone, 10); // Validate phone length
-    checkInputLength(age, 2); // Validate age length
-    showErrorMessages(); // Display error messages if any
+    checkRequired([firstName, lastName, phoneNumber, email, age]);
+    checkInputValue(firstName);
+    checkInputValue(lastName);
+    checkInputLength(phoneNumber, 9);
+    checkEmail(email);
+    checkInputLength(age, 2);
+    showErrorMessages();
 
-    // If there are no errors, add the contact to Firestore
     if (Object.keys(error).length === 0) {
       if (modalOverlay.getAttribute("contact-id")) {
-        //update contact
         const docRef = doc(db, "contacts", modalOverlay.getAttribute("contact-id"));
         try {
           await updateDoc(docRef, {
-            firstname: firstname.value,
-            lastname: lastname.value,
+            firstName: firstName.value,
+            lastName: lastName.value,
+            phoneNumber: phoneNumber.value,
             email: email.value,
-            phone: phone.value,
             age: age.value
           });
-          closeWhenPressed(); // Close the modal
+          closeWhenPressed();
         } catch (e) {
-          setErrorMessage("error", "Error updating document: " + e); // Set error if there is an error updating the document
-          showErrorMessages(); // Display error messages if any
+          setErrorMessage("error", "Error updating document: " + e);
+          showErrorMessages();
         }
       } else {
-        //add contact
         try {
           await addDoc(dbRef, {
-            firstname: firstname.value,
-            lastname: lastname.value,
+            firstName: firstName.value,
+            lastName: lastName.value,
+            phoneNumber: phoneNumber.value,
             email: email.value,
-            phone: phone.value,
             age: age.value
           });
-          closeWhenPressed(); // Close the modal
+          closeWhenPressed();
         } catch (err) {
-          setErrorMessage("error", "Error adding document: " + err); // Set error if there is an error adding the document
-          showErrorMessages(); // Display error messages if any
+          setErrorMessage("error", "Error adding document: " + err);
+          showErrorMessages();
         }
       }
     }
@@ -267,26 +311,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to set an error message for an input field
   const setErrorMessage = (input, message) => {
     if (input.nodeName === "INPUT") {
-      error[input.id] = message; // Client Side - Add the error message to the error object
-      input.style.border = "1px solid red"; // Highlight the input field with a red border
+      error[input.id] = message;
+      input.style.border = "1px solid red";
     } else {
-      error[input] = message; // Server side - Add the error message to the error object
+      error[input] = message;
     }
-  }
+  };
 
   // Function to delete an error message for an input field
   const deleteErrorMessage = (input) => {
-    delete error[input.id]; // Remove the error message from the error object
-    input.style.border = "1px solid green"; // Highlight the input field with a green border
+    delete error[input.id];
+    input.style.border = "1px solid green";
   };
 
   // Function to check if the input value length matches the required length
   const checkInputLength = (input, number) => {
     if (input.value.trim() !== "") {
       if (input.value.length === number) {
-        deleteErrorMessage(input); // Delete error if the length matches
+        deleteErrorMessage(input);
       } else {
-        setErrorMessage(input, input.id + " must be " + number + " characters"); // Set error if the length does not match
+        setErrorMessage(input, fieldNames[input.id] + " must be " + number + " characters");
       }
     }
   };
@@ -294,45 +338,43 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to check if the input value is not empty
   const checkInputValue = (input) => {
     if (input.value.trim() !== "") {
-      deleteErrorMessage(input); // Delete error if the field is not empty
+      deleteErrorMessage(input);
     } else {
-      setErrorMessage(input, input.id + " is required"); // Set error if the field is empty
+      setErrorMessage(input, fieldNames[input.id] + " is required");
     }
   };
 
   // Function to validate the email format
   const checkEmail = (input) => {
     if (input.value.trim() !== "") {
-      const re = /\S+@\S+\.\S+/; // Regular expression for email validation
+      const re = /\S+@\S+\.\S+/;
       if (re.test(input.value.trim())) {
-        deleteErrorMessage(input); // Delete error if the email format is valid
+        deleteErrorMessage(input);
       } else {
-        setErrorMessage(input, "Email is not valid"); // Set error if the email format is invalid
+        setErrorMessage(input, "Email is not valid");
       }
     }
   };
 
   // Function to display all error messages
   const showErrorMessages = () => {
-    const errorLabel = document.getElementById("error-label"); // Query the error label element
-    errorLabel.innerHTML = ""; // Clear previous error messages
+    const errorLabel = document.getElementById("error-label");
+    errorLabel.innerHTML = "";
     for (const key in error) {
-      const li = document.createElement("li"); // Create a list item for each error
-      li.textContent = error[key]; // Set the error message as the list item's text
-      li.style.color = "red"; // Set the text color to red
-      errorLabel.appendChild(li); // Add the list item to the error label
+      const li = document.createElement("li");
+      li.textContent = error[key];
+      li.style.color = "red";
+      errorLabel.appendChild(li);
     }
-  }
+  };
 
   // Add event listeners for the buttons and overlay
-  addBtn.addEventListener("click", addButtonPressed); // Open the modal when add button is pressed
-  closeBtn.addEventListener("click", closeBtnPressed); // Close the modal when close button is pressed
-  modalOverlay.addEventListener("click", closeWhenPressed); // Close the modal when clicking outside of it
-  submitBtn.addEventListener("click", saveButtonPressed); // Handle form submission
-  backBtn.addEventListener("click", backBtnPressed); // Handle back button on mobile
-
-  // Add the contactList event listener after it is defined
+  addBtn.addEventListener("click", addButtonPressed);
+  closeBtn.addEventListener("click", closeBtnPressed);
+  modalOverlay.addEventListener("click", closeWhenPressed);
+  submitBtn.addEventListener("click", saveButtonPressed);
+  backBtn.addEventListener("click", backBtnPressed);
   contactList.addEventListener("click", debounce(contactListPressed, 300));
 
-  getContacts(); // Fetch the contacts after everything is set up
+  getContacts();
 });
